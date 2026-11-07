@@ -196,7 +196,7 @@ playlistToggle.onclick=()=>{
 playlistAdd.onclick=()=>{const card=createPlaylistSong();if(card)card.querySelector('input').focus()};
 playlistForm.onsubmit=async e=>{
  e.preventDefault();if(playlistSending||playlistSuccess)return;
- const endpoint=window.SALO_CONFIG&&window.SALO_CONFIG.rsvpEndpoint;
+ const endpoint=window.SALO_CONFIG&&(window.SALO_CONFIG.songsEndpoint||window.SALO_CONFIG.rsvpEndpoint);
  if(!endpoint||!endpoint.startsWith('https://script.google.com/macros/s/')||!endpoint.endsWith('/exec')){playlistStatus.textContent='Las sugerencias todavía no están disponibles.';return}
  const songs=[...playlistSongs.children].map(card=>({titulo:card.querySelector('[data-song="titulo"]').value.trim(),interprete:card.querySelector('[data-song="interprete"]').value.trim()}));
  if(!songs.length||songs.length>5||songs.some(v=>!v.titulo||!v.interprete)){playlistStatus.textContent='Completá tema e intérprete de todas las canciones (máximo 5).';return}
