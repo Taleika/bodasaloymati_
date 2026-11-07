@@ -1,0 +1,59 @@
+name: Replicate individual wedding invitation
+on:
+  push:
+    paths:
+      - '.github/workflows/replicate-individual.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  replicate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout individual repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Copy latest invitation and original media
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/Taleika/bodasaloymati.git /tmp/original-invitation
+          rsync -a --exclude='.git' --exclude='.github' /tmp/original-invitation/ ./
+      - name: Make confirmation individual and set separate receiver
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          original='https://taleika.github.io/bodasaloymati/'
+          updated='https://taleika.github.io/bodasaloymati_/'
+          assert original in s
+          s=s.replace(original,updated)
+          start=s.index('<div class="family-area" id="familyArea" hidden>')
+          end=s.index('<button class="btn" type="submit" id="submitRsvp"',start)
+          s=s[:start]+'<div class="family-area" id="familyArea" hidden style="display:none!important"><div id="familyMembers"></div><button id="addMember" type="button" disabled hidden></button></div>'+s[end:]
+          assert "familyArea.hidden=v!=='Sí';" in s
+          s=s.replace("familyArea.hidden=v!=='Sí';","familyArea.hidden=true;")
+          assert "addMember.onclick=renderMember;" in s
+          s=s.replace("addMember.onclick=renderMember;","addMember.onclick=null;")
+          p.write_text(s,encoding='utf-8')
+          cfg=Path('config.js')
+          cfg.write_text("// Servicio independiente para la invitación individual.\\nwindow.SALO_CONFIG = { rsvpEndpoint: '' };\\n",encoding='utf-8')
+          app=Path('apps-script/Code.gs')
+          code=app.read_text(encoding='utf-8')
+          assert "'Invitación web'" in code
+          code=code.replace("'Invitación web'","'Web individual'")
+          app.write_text(code,encoding='utf-8')
+          Path('README.md').write_text("# Salo & Mati — invitación individual\\n\\nCopia de la invitación original, sin registro de integrantes adicionales.\\nLas confirmaciones se guardan en la misma planilla de Google Sheets, identificadas como **Web individual** mediante el Apps Script de este repositorio.\\nPara habilitarlas, publicar `apps-script/Code.gs` como aplicación web independiente y colocar el enlace /exec en `config.js`.\\n",encoding='utf-8')
+          PY
+      - name: Commit replicated invitation and media
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Replicate invitation with individual RSVP and dedicated origin"
+            git push
+          fi
