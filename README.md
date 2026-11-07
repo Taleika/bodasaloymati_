@@ -1,3 +1,1 @@
-# Invitación individual — Salo y Mati
-
-Réplica de la invitación original con confirmación individual.
+# Salo & Mati — invitación individual\n\nCopia de la invitación original, sin registro de integrantes adicionales.\nLas confirmaciones se guardan en la misma planilla de Google Sheets, identificadas como **Web individual** mediante el Apps Script de este repositorio.\nPara habilitarlas, publicar `apps-script/Code.gs` como aplicación web independiente y colocar el enlace /exec en `config.js`.\n

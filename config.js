@@ -1,0 +1,1 @@
+// Servicio independiente para la invitación individual.\nwindow.SALO_CONFIG = { rsvpEndpoint: '' };\n
